@@ -153,7 +153,7 @@ export default {
   directives: { appendToBody },
 
   mixins: [pointerScroll, typeAheadPointer, ajax],
-  
+
   compatConfig: {
     MODE: 3,
   },
@@ -888,22 +888,33 @@ export default {
      * @return {array}
      */
     filteredOptions() {
-      const optionList = [].concat(this.optionList)
-
-      if (!this.filterable && !this.taggable) {
-        return optionList
+      let optionList = []
+      if (this.filterable) {
+        optionList = [].concat(this.optionList)
+        if (!this.taggable) {
+          return optionList
+        }
+        const options = this.search.length
+            ? this.filter(optionList, this.search, this)
+            : optionList
+        if (this.taggable && this.search.length) {
+          const createdOption = this.createOption(this.search)
+          if (!this.optionExists(createdOption)) {
+            options.unshift(createdOption)
+          }
+        }
+        return options
       }
-
-      const options = this.search.length
-        ? this.filter(optionList, this.search, this)
-        : optionList
+      optionList = this.optionList
       if (this.taggable && this.search.length) {
         const createdOption = this.createOption(this.search)
-        if (!this.optionExists(createdOption)) {
-          options.unshift(createdOption)
-        }
+        optionList = optionList.filter(
+            option => Object.keys(option).length > 1 ||
+                option.label === this.search || option === this.search
+        )
+        optionList.unshift(createdOption)
       }
-      return options
+      return optionList
     },
 
     /**
